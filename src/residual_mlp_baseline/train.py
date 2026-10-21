@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader, TensorDataset, random_split
 
 from .model import TASKS, ResidualMLP
 
@@ -35,18 +35,31 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
     model = ResidualMLP(**TASKS[task]).to(device)
 
     # 2. Wrap the data so we can loop over shuffled mini-batches.
+    # 2. Split the provided training data into training and validation sets.
     dataset = TensorDataset(prepare(X_train), torch.as_tensor(y_train).long())
-    loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
+
+    val_size = int(0.1 * len(dataset))
+    train_size = len(dataset) - val_size
+
+    train_dataset, val_dataset = random_split(
+        dataset,
+        [train_size, val_size],
+         generator=torch.Generator().manual_seed(seed)
+    )
+
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
     # 3. Choose the loss and the optimizer.
     loss_fn = nn.CrossEntropyLoss()           # expects raw logits
     optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=0.01)
 
     # 4. The training loop.
-    model.train()
     for epoch in range(EPOCHS[task]):
         total_loss = 0.0
-        for X_batch, y_batch in loader:
+
+        model.train()
+        for X_batch, y_batch in train_loader:
             X_batch, y_batch = X_batch.to(device), y_batch.to(device)
 
             logits = model(X_batch)           # forward pass
@@ -58,7 +71,27 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
 
             total_loss += loss.item() * len(X_batch)
 
-        print(f"epoch {epoch + 1}: train loss {total_loss / len(dataset):.4f}")
+        # Validation loop
+        model.eval()
+        val_loss = 0.0
+        val_correct = 0
+
+        with torch.no_grad():
+            for X_batch, y_batch in val_loader:
+                X_batch, y_batch = X_batch.to(device), y_batch.to(device)
+
+                logits = model(X_batch)
+                loss = loss_fn(logits, y_batch)
+
+                val_loss += loss.item() * len(X_batch)
+                val_correct += (logits.argmax(dim=1) == y_batch).sum().item()
+
+        print(
+            f"epoch {epoch + 1}: "
+            f"train loss {total_loss / len(train_dataset):.4f}, "
+            f"val loss {val_loss / len(val_dataset):.4f}, "
+            f"val accuracy {val_correct / len(val_dataset):.2%}"
+        )
 
     return model
 
