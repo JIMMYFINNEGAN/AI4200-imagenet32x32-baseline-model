@@ -33,9 +33,9 @@ ImageNet 32x32: 6.77% test accuracy
 **Expected:** Reduced overfitting and improved validation accuracy.
 **Result:** Test accuracy fell from 55.03% to 52.82% but the best validation loss increased from 55.16% to 56.48% and achieved best validaiton loss at epoch 12. Training loss went up and validation loss went down showing overfitting was improved.
 
-### Change 4 — epochs — 2026-10-21
+### Change 5 — epochs — 2026-10-21
 
-**Change:** Changing cifar-10 epochs to 12.
+**Change:** Changing cifar-10 epochs from 30 to 12.
 **Why:** We found our best validation loss at epoch 12 before the model began to overfit.
 **Expected:** Possibly better test accuracy.
-**Result:** T
+**Result:** Test accuracy increased from 52.82% to 55.40%.
