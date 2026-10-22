@@ -25,7 +25,7 @@ class Block(nn.Module):
         self.fc2 = nn.Linear(hidden, width)   # project: hidden -> width
 
     def forward(self, x):
-        h = self.fc2(torch.tanh(self.fc1(self.norm(x))))
+        h = self.fc2(nn.functional.gelu(self.fc1(self.norm(x))))
         return x + h                          # skip connection: add the input back
 
 
@@ -70,7 +70,7 @@ class ResidualMLP(nn.Module):
         x = self.input_layer(x)
         for block in self.blocks:
             x = block(x)
-        x = self.head_fc2(torch.tanh(self.head_fc1(self.head_norm(x))))
+        x = self.head_fc2(nn.functional.gelu(self.head_fc1(self.head_norm(x))))
         return x
 
     def predict(self, x):
