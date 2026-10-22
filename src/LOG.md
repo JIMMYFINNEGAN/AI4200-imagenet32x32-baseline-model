@@ -31,14 +31,11 @@ ImageNet 32x32: 6.77% test accuracy
 **Change:** Added dropout with probability 0.2 after GELU in each residual block.
 **Why:** GELU showed substantial overfitting with validation loss increasing after epoch 7. Dropout will make it harder for the model to memorize the training images.
 **Expected:** Reduced overfitting and improved validation accuracy.
-**Result:** 
+**Result:** Test accuracy fell from 55.03% to 52.82% but the best validation loss increased from 55.16% to 56.48% and achieved best validaiton loss at epoch 12. Training loss went up and validation loss went down showing overfitting was improved.
 
-### Change 12 — cifar10 — 2026-10-20
+### Change 4 — epochs — 2026-10-21
 
-**Change:** Replaced SGD (lr 0.05) with AdamW (lr 1e-3, weight decay 0.05).
-**Why:** Train loss was still falling slowly after 30 epochs, so I think the
-optimizer, not model capacity, is the bottleneck.
-**Expected:** Faster convergence and higher test accuracy, maybe +3 to 5 points.
-**Result:** Test accuracy 48.1% -> 53.4%. Train accuracy 71%. 14 min on one GPU.
-The gain was as expected, but the train/test gap grew from 9 to 18 points,
-so the model is now overfitting. Next I will add dropout.
+**Change:** Changing cifar-10 epochs to 12.
+**Why:** We found our best validation loss at epoch 12 before the model began to overfit.
+**Expected:** Possibly better test accuracy.
+**Result:** T
