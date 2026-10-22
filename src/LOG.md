@@ -39,3 +39,10 @@ ImageNet 32x32: 6.77% test accuracy
 **Why:** We found our best validation loss at epoch 12 before the model began to overfit.
 **Expected:** Possibly better test accuracy.
 **Result:** Test accuracy increased from 52.82% to 55.40%.
+
+### Change 6 — SwiGLU — 2026-10-21
+
+**Change:** Replaced GELU with SwiGLU in the residual blocks and kept GELU in classification head.
+**Why:** SwiGLU has a learned gating mechanism and may improve network's ability to represent useful features.
+**Expected:** Potentially improve validation accuracy but may increase overfitting.
+**Result:** 
