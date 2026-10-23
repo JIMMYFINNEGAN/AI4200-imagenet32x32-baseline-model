@@ -81,7 +81,24 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
 
                 flip_mask = torch.rand(len(images), device=images.device) < 0.5
                 images[flip_mask] = images[flip_mask].flip(dims=[3])
-                
+            elif task == "mnist":
+                images = X_batch.reshape(-1, 1, 28, 28)
+
+                # Add 2 pixels of padding around each digit.
+                # MNIST backgrounds are black, corresponding to -1 after normalization.
+                images = F.pad(images, (2, 2, 2, 2), value=-1.0)
+
+                # Randomly crop each image back to 28x28.
+                images = torch.stack([
+                    images[i, :, top:top + 28, left:left + 28]
+                    for i, (top, left) in enumerate(
+                        zip(
+                            torch.randint(0, 5, (len(images),)).tolist(),
+                            torch.randint(0, 5, (len(images),)).tolist()
+                        )
+                    )
+                ])
+  
                 X_batch = images
 
             logits = model(X_batch)           # forward pass
