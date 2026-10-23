@@ -66,4 +66,11 @@ ImageNet 32x32: 6.77% test accuracy
 **Change:** Lowering dropout to a probability of 0.1 in residual blocks and head.
 **Why:** We added dropout to prevent overfitting. Now that we've used data augmentation, our model is still learning in later epochs. We may be regularizing more than necessary.
 **Expected:** Higher validation accuracy and potentially test accuracy.
+**Result:** Test accuracy increased from 57.94% to 58.48%. Best validation accuracy improved from 58.30% to 58.68%. Reducing dropout improved classification accuracy without causing severe overfitting.
+
+### Change 10 — CIFAR-10 — 2026-10-22
+
+**Change:** Reduced dropout probability from 0.1 to 0.0 in the residual blocks and classification head.
+**Why:** Reducing dropout from 0.2 to 0.1 improved test accuracy from 57.94% to 58.48%. Random cropping has substantially reduced overfitting, so dropout may no longer be necessary.
+**Expected:** Potentially higher validation and test accuracy as the model learns without dropout restrictions. However, validation loss may increase if overfitting returns.
 **Result:** Pending.
