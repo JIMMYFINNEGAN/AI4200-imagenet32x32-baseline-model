@@ -130,3 +130,10 @@ ImageNet 32x32: 6.77% test accuracy
 **Why:** To establish a new baseline on imagenet before making changes.
 **Expected:** Higher test accuracy than original MLP baseline model provided.
 **Result:** Pending.
+
+### Change 19 — imagenet — 2026-10-23
+
+**Change:** Replaced GELU activation with SwiGLU in all 30 residual blocks while keeping GELU in the output head.
+**Why:** We want to determine whether SwiGLU improves performance under the same training conditions.
+**Expected:** Higher validation and test accuracy than the current GELU model, potentially exceeding our previous best of 10%.
+**Result:** Pending.

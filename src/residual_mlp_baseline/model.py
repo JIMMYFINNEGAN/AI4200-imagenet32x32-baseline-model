@@ -22,14 +22,18 @@ class Block(nn.Module):
         super().__init__()
         self.norm = nn.LayerNorm(width)       # pre-norm: normalize before the layers
         self.fc1 = nn.Linear(width, hidden)   # expand:  width  -> hidden
+        self.gate = nn.Linear(width, hidden)
         self.fc2 = nn.Linear(hidden, width)   # project: hidden -> width
         self.dropout = nn.Dropout(p=0.1)
 
     def forward(self, x):
-        h= self.fc1(self.norm(x))
-        h = nn.functional.gelu(h)
+        h = self.norm(x)
+        value = self.fc1(h)
+        gate = nn.functional.silu(self.gate(h))
+        h = value * gate
         h = self.dropout(h)
         h = self.fc2(h)
+        
         return x + h                          # skip connection: add the input back
 
 
