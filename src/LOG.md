@@ -52,4 +52,4 @@ ImageNet 32x32: 6.77% test accuracy
 **Change:** Returning to GELU with dropout(0.2) and adding a cosine learning rate scheduler over 30 epochs.
 **Why:** GELU was performing well in the early epochs before overfitting. A learning rate scheduler reduces the learning rate and allows smaller parameter updates.
 **Expected:** The validation accuracy will improve over a larger number of epochs.
-**Result:** pending
+**Result:** Achieved 56.17% test accuracy, improving upon the previous best of 55.40%. Best validation accuracy reached 56.84% at epoch 19. Validation loss still increased after epoch 8, indicating continued overfitting.
