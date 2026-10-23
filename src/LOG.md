@@ -73,4 +73,11 @@ ImageNet 32x32: 6.77% test accuracy
 **Change:** Reduced dropout probability from 0.1 to 0.0 in the residual blocks and classification head.
 **Why:** Reducing dropout from 0.2 to 0.1 improved test accuracy from 57.94% to 58.48%. Random cropping has substantially reduced overfitting, so dropout may no longer be necessary.
 **Expected:** Potentially higher validation and test accuracy as the model learns without dropout restrictions. However, validation loss may increase if overfitting returns.
+**Result:** Test accuracy decreased from 58.48% to 58.19%. Best validation accuracy increased from 58.68% to 59.06% at epoch 26, but minimum validation loss worsened from 1.1996 to 1.2203. Final training loss decreased to 0.8127, while validation loss rose toward the end of training. Removing dropout improved training fit but did not improve final test performance.
+
+### Change 11 — CIFAR-10 — 2026-10-22
+
+**Change:** Added random horizontal flipping with a 50% probability to the existing random cropping augmentation. Returned dropout to 0.1.
+**Why:** Random cropping improved generalization by introducing positional variation. Horizontal flipping may further improve generalization by teaching the model to recognize objects regardless of whether they face left or right.
+**Expected:** Higher validation and test accuracy.
 **Result:** Pending.

@@ -9,7 +9,7 @@ from .model import TASKS, ResidualMLP
 # plain SGD, constant learning rate, no dropout, no schedule, no augmentation.
 LEARNING_RATE = 0.001
 BATCH_SIZE = 256
-EPOCHS = {"mnist": 10, "cifar10": 26, "imagenet32": 10}
+EPOCHS = {"mnist": 10, "cifar10": 30, "imagenet32": 10}
 
 
 def prepare(X):
@@ -79,6 +79,9 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
                     )
                 ])
 
+                flip_mask = torch.rand(len(images), device=images.device) < 0.5
+                images[flip_mask] = images[flip_mask].flip(dims=[3])
+                
                 X_batch = images
 
             logits = model(X_batch)           # forward pass
