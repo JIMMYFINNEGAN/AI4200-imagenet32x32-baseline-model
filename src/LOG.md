@@ -59,4 +59,11 @@ ImageNet 32x32: 6.77% test accuracy
 **Change:** Added random cropping data augmentation to CIFAR-10 training images. Each image receives 4 pixels of padding on every side and is randomly cropped back to 32×32.
 **Why:** Our MLP learns from individual pixel positions and may struggle to recognize objects when they appear in slightly different locations. Random cropping introduces positional variation during training to improve generalization.
 **Expected:** Reduce overfitting and improve validation and test accuracy beyond our current best of 56.17%.
+**Result:** Test accuracy improved from 56.17% to 57.94%. The best validation accuracy was 58.30% at epoch 28. Validation loss continued decreasing throughout most of training, reaching a minimum of 1.1970. This suggests substantially better generalization and less overfitting.
+
+### Change 9 — CIFAR-10 — 2026-10-22
+
+**Change:** Lowering dropout to a probability of 0.1 in residual blocks and head.
+**Why:** We added dropout to prevent overfitting. Now that we've used data augmentation, our model is still learning in later epochs. We may be regularizing more than necessary.
+**Expected:** Higher validation accuracy and potentially test accuracy.
 **Result:** Pending.
