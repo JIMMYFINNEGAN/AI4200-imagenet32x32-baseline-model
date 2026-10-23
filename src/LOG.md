@@ -122,4 +122,4 @@ ImageNet 32x32: 6.77% test accuracy
 **Change:** Increased MNIST training from 20 to 30 epochs and adjusted the cosine learning-rate scheduler to T_max=30. Kept all other settings unchanged.
 **Why:** Validation accuracy and validation loss were still improving at epoch 20, suggesting the model could benefit from additional training.
 **Expected:** Higher validation and test accuracy, potentially exceeding 99%. Additional epochs may also introduce overfitting.
-**Result:** Pending.
+**Result:** PTest accuracy improved from 98.92% to 99.03%. Best validation accuracy reached 99.12% at epochs 24 and 28, and minimum validation loss reached 0.0317 at epoch 29. Performance improvements began leveling off during the final epochs, suggesting diminishing returns from additional training.
