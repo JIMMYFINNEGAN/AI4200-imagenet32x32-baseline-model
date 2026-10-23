@@ -95,3 +95,10 @@ ImageNet 32x32: 6.77% test accuracy
 **Why:** Accuracy increased when epochs were increased to from 30 to 40. Perhaps increasing from 40 to 50 will also yield a higher validation and test accuracy.
 **Expected:** Higher validation and test accuracy or potential overfitting.
 **Result:** Test accuracy improved from 59.66% to 60.25%. Best validation accuracy reached 60.12% at epoch 43. Validation loss began increasing after epoch 28, indicating some overfitting, but classification accuracy continued improving.
+
+### Change 14 — CIFAR-10 — 2026-10-22
+
+**Change:** Increased the number of hidden neurons in each residual block from 256 to 512.
+**Why:** Our model reached 60.25% test accuracy with 256 hidden neurons. Increasing the hidden layer size gives the model more capacity to learn complex patterns and relationships between image pixels.
+**Expected:** Higher validation and test accuracy due to increased model capacity, potentially exceeding our current best of 60.25%. However, the larger model may be more prone to overfitting.
+**Result:** Test accuracy decreased from 60.25% to 59.64%. Best validation accuracy decreased from 60.12% to 59.74%. Minimum validation loss increased from 1.1772 to 1.1965 at epoch 24. Training loss continued decreasing to 0.6643, while validation loss increased to 1.3194 by epoch 50, indicating greater overfitting. Increasing hidden neurons did not improve generalization.
