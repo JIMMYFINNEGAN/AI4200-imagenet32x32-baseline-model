@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset, random_split
-
+import torch.nn.functional as F
 from .model import TASKS, ResidualMLP
 
 
@@ -36,6 +36,9 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
 
     # 2. Wrap the data so we can loop over shuffled mini-batches.
     # 2. Split the provided training data into training and validation sets.
+    if task == "cifar10":
+        print("CIFAR-10 input shape:", X_train.shape)
+        print("First image shape:", X_train[0].shape)
     dataset = TensorDataset(prepare(X_train), torch.as_tensor(y_train).long())
 
     val_size = int(0.1 * len(dataset))
@@ -61,6 +64,25 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
         model.train()
         for X_batch, y_batch in train_loader:
             X_batch, y_batch = X_batch.to(device), y_batch.to(device)
+
+            if task == "cifar10":
+                images = X_batch.reshape(-1, 3, 32, 32)
+
+                 # Add 4 pixels of padding around each image.
+                images = F.pad(images, (4, 4, 4, 4))
+
+                 # Randomly crop each image back to 32x32.
+                images = torch.stack([
+                images[i, :, top:top + 32, left:left + 32]
+                for i, (top, left) in enumerate(
+                    zip(
+                        torch.randint(0, 9, (len(images),)).tolist(),
+                        torch.randint(0, 9, (len(images),)).tolist()
+                    )
+                )
+            ])
+
+            X_batch = images
 
             logits = model(X_batch)           # forward pass
             loss = loss_fn(logits, y_batch)   # how wrong are we?
