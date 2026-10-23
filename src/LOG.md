@@ -80,4 +80,11 @@ ImageNet 32x32: 6.77% test accuracy
 **Change:** Added random horizontal flipping with a 50% probability to the existing random cropping augmentation. Returned dropout to 0.1.
 **Why:** Random cropping improved generalization by introducing positional variation. Horizontal flipping may further improve generalization by teaching the model to recognize objects regardless of whether they face left or right.
 **Expected:** Higher validation and test accuracy.
+**Result:** Test accuracy improved from 58.48% to 58.59%, an increase of 0.11 percentage points. Best validation accuracy increased from 58.68% to 59.36% at epoch 29. Minimum validation loss improved from 1.1996 to 1.1784. Validation loss continued decreasing through the final epochs, suggesting the model may benefit from additional training.
+
+### Change 12 — CIFAR-10 — 2026-10-22
+
+**Change:** Increased training from 30 to 40 epochs and extended the cosine learning-rate schedule from 30 to 40 epochs.
+**Why:** With both augmentation techniques, validation loss continued decreasing through the final epochs, suggesting the model may benefit from additional training.
+**Expected:** Higher validation and test accuracy, potentially exceeding 59%, without significant overfitting.
 **Result:** Pending.
