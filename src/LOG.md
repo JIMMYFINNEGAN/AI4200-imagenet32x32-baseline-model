@@ -53,3 +53,10 @@ ImageNet 32x32: 6.77% test accuracy
 **Why:** GELU was performing well in the early epochs before overfitting. A learning rate scheduler reduces the learning rate and allows smaller parameter updates.
 **Expected:** The validation accuracy will improve over a larger number of epochs.
 **Result:** Achieved 56.17% test accuracy, improving upon the previous best of 55.40%. Best validation accuracy reached 56.84% at epoch 19. Validation loss still increased after epoch 8, indicating continued overfitting.
+
+### Change 8 — CIFAR-10 — 2026-10-22
+
+**Change:** Added random cropping data augmentation to CIFAR-10 training images. Each image receives 4 pixels of padding on every side and is randomly cropped back to 32×32.
+**Why:** Our MLP learns from individual pixel positions and may struggle to recognize objects when they appear in slightly different locations. Random cropping introduces positional variation during training to improve generalization.
+**Expected:** Reduce overfitting and improve validation and test accuracy beyond our current best of 56.17%.
+**Result:** Pending.

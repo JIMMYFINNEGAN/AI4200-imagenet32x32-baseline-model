@@ -9,7 +9,7 @@ from .model import TASKS, ResidualMLP
 # plain SGD, constant learning rate, no dropout, no schedule, no augmentation.
 LEARNING_RATE = 0.001
 BATCH_SIZE = 256
-EPOCHS = {"mnist": 10, "cifar10": 19, "imagenet32": 10}
+EPOCHS = {"mnist": 10, "cifar10": 30, "imagenet32": 10}
 
 
 def prepare(X):
@@ -36,9 +36,6 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
 
     # 2. Wrap the data so we can loop over shuffled mini-batches.
     # 2. Split the provided training data into training and validation sets.
-    if task == "cifar10":
-        print("CIFAR-10 input shape:", X_train.shape)
-        print("First image shape:", X_train[0].shape)
     dataset = TensorDataset(prepare(X_train), torch.as_tensor(y_train).long())
 
     val_size = int(0.1 * len(dataset))
@@ -73,16 +70,16 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
 
                  # Randomly crop each image back to 32x32.
                 images = torch.stack([
-                images[i, :, top:top + 32, left:left + 32]
-                for i, (top, left) in enumerate(
-                    zip(
-                        torch.randint(0, 9, (len(images),)).tolist(),
-                        torch.randint(0, 9, (len(images),)).tolist()
+                    images[i, :, top:top + 32, left:left + 32]
+                    for i, (top, left) in enumerate(
+                        zip(
+                            torch.randint(0, 9, (len(images),)).tolist(),
+                            torch.randint(0, 9, (len(images),)).tolist()
+                        )
                     )
-                )
-            ])
+                ])
 
-            X_batch = images
+                X_batch = images
 
             logits = model(X_batch)           # forward pass
             loss = loss_fn(logits, y_batch)   # how wrong are we?
