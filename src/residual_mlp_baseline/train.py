@@ -9,7 +9,7 @@ from .model import TASKS, ResidualMLP
 # plain SGD, constant learning rate, no dropout, no schedule, no augmentation.
 LEARNING_RATE = 0.001
 BATCH_SIZE = 256
-EPOCHS = {"mnist": 10, "cifar10": 30, "imagenet32": 10}
+EPOCHS = {"mnist": 10, "cifar10": 8, "imagenet32": 10}
 
 
 def prepare(X):
@@ -93,7 +93,7 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
             f"val accuracy {val_correct / len(val_dataset):.2%}"
         )
         scheduler.step()
-        
+
     return model
 
 
