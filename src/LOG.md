@@ -87,4 +87,11 @@ ImageNet 32x32: 6.77% test accuracy
 **Change:** Increased training from 30 to 40 epochs and extended the cosine learning-rate schedule from 30 to 40 epochs.
 **Why:** With both augmentation techniques, validation loss continued decreasing through the final epochs, suggesting the model may benefit from additional training.
 **Expected:** Higher validation and test accuracy, potentially exceeding 59%, without significant overfitting.
-**Result:** Pending.
+**Result:** Test accuracy improved from 58.59% to 59.66%. Best validation accuracy reached 59.96% at epoch 40, compared with 59.36% previously. Minimum validation loss improved slightly to 1.1730 at epoch 28. Additional training improved classification accuracy without severe overfitting.
+
+### Change 13 — CIFAR-10 — 2026-10-22
+
+**Change:** Increased training from 40 to 50 epochs and extended the cosine learning-rate schedule from 40 to 50 epochs.
+**Why:** Accuracy increased when epochs were increased to from 30 to 40. Perhaps increasing from 40 to 50 will also yield a higher validation and test accuracy.
+**Expected:** Higher validation and test accuracy.
+**Result:** pending.
