@@ -129,11 +129,11 @@ ImageNet 32x32: 6.77% test accuracy
 **Change:** Using our best performing cifar and mnist model on imagenet. Using GELU activation, dropout of 0.1, AdamW optimizer, cosine lr scheduler.
 **Why:** To establish a new baseline on imagenet before making changes.
 **Expected:** Higher test accuracy than original MLP baseline model provided.
-**Result:** Pending.
+**Result:** Achieved 9.84% test accuracy. Best validation accuracy reached 10.91% at epoch 10, with minimum validation loss of 5.1308 at epoch 8. Validation accuracy continued improving through the final epoch.
 
 ### Change 19 — imagenet — 2026-10-23
 
 **Change:** Replaced GELU activation with SwiGLU in all 30 residual blocks while keeping GELU in the output head.
 **Why:** We want to determine whether SwiGLU improves performance under the same training conditions.
 **Expected:** Higher validation and test accuracy than the current GELU model, potentially exceeding our previous best of 10%.
-**Result:** Pending.
+**Result:** Test accuracy improved from 9.84% to 10.07%. Best validation accuracy increased from 10.91% to 11.21% at epoch 8, while minimum validation loss decreased from 5.1308 to 5.1082 at epoch 6. Training loss decreased to 4.2555, but validation loss increased to 5.2176 by epoch 10, indicating greater overfitting. SwiGLU improved accuracy slightly but increased training time.
