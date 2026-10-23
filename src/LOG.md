@@ -93,5 +93,5 @@ ImageNet 32x32: 6.77% test accuracy
 
 **Change:** Increased training from 40 to 50 epochs and extended the cosine learning-rate schedule from 40 to 50 epochs.
 **Why:** Accuracy increased when epochs were increased to from 30 to 40. Perhaps increasing from 40 to 50 will also yield a higher validation and test accuracy.
-**Expected:** Higher validation and test accuracy.
-**Result:** pending.
+**Expected:** Higher validation and test accuracy or potential overfitting.
+**Result:** Test accuracy improved from 59.66% to 60.25%. Best validation accuracy reached 60.12% at epoch 43. Validation loss began increasing after epoch 28, indicating some overfitting, but classification accuracy continued improving.
