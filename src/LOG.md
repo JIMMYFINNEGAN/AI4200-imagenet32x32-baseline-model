@@ -123,3 +123,10 @@ ImageNet 32x32: 6.77% test accuracy
 **Why:** Validation accuracy and validation loss were still improving at epoch 20, suggesting the model could benefit from additional training.
 **Expected:** Higher validation and test accuracy, potentially exceeding 99%. Additional epochs may also introduce overfitting.
 **Result:** PTest accuracy improved from 98.92% to 99.03%. Best validation accuracy reached 99.12% at epochs 24 and 28, and minimum validation loss reached 0.0317 at epoch 29. Performance improvements began leveling off during the final epochs, suggesting diminishing returns from additional training.
+
+### Change 18 — imagenet — 2026-10-23
+
+**Change:** Using our best performing cifar and mnist model on imagenet. Using GELU activation, dropout of 0.1, AdamW optimizer, cosine lr scheduler.
+**Why:** To establish a new baseline on imagenet before making changes.
+**Expected:** Higher test accuracy than original MLP baseline model provided.
+**Result:** Pending.
