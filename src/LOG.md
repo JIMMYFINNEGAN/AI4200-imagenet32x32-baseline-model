@@ -102,3 +102,17 @@ ImageNet 32x32: 6.77% test accuracy
 **Why:** Our model reached 60.25% test accuracy with 256 hidden neurons. Increasing the hidden layer size gives the model more capacity to learn complex patterns and relationships between image pixels.
 **Expected:** Higher validation and test accuracy due to increased model capacity, potentially exceeding our current best of 60.25%. However, the larger model may be more prone to overfitting.
 **Result:** Test accuracy decreased from 60.25% to 59.64%. Best validation accuracy decreased from 60.12% to 59.74%. Minimum validation loss increased from 1.1772 to 1.1965 at epoch 24. Training loss continued decreasing to 0.6643, while validation loss increased to 1.3194 by epoch 50, indicating greater overfitting. Increasing hidden neurons did not improve generalization.
+
+### Change 15 — MNIST — 2026-10-22
+
+**Change:** Added random cropping with 2 pixels of padding to MNIST training images. Each 28×28 image is padded to 32×32 and randomly cropped back to 28×28.
+**Why:** Random cropping introduces small positional variations, helping the model recognize handwritten digits regardless of slight shifts in their position.
+**Expected:** Improved generalization and higher validation and test accuracy by making the model less sensitive to digit positioning.
+**Result:** Achieved 97.98% test accuracy, compared with the original baseline of 95.06%. Best validation accuracy reached 98.05% at epoch 10, with a minimum validation loss of 0.0619. Validation performance was still improving at the final epoch, suggesting additional training may provide further improvements.
+
+### Change 16 — MNIST — 2026-10-22
+
+**Change:** Increased MNIST training from 10 to 20 epochs and adjusted the cosine learning-rate scheduler to T_max=20.
+**Why:** Validation accuracy was still improving at epoch 10, suggesting the model could benefit from additional training.
+**Expected:** Higher validation and test accuracy, potentially exceeding the current best of 97.98%. Additional epochs may also introduce overfitting.
+**Result:** Pending.
