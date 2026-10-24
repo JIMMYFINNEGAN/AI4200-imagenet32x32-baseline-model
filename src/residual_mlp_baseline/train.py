@@ -53,7 +53,7 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
     # 3. Choose the loss and the optimizer.
     loss_fn = nn.CrossEntropyLoss()           # expects raw logits
     optimizer = torch.optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
-    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max = EPOCHS[task], eta_min = 1e-5)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max = EPOCHS[task], eta_min = 1e-5)
     # 4. The training loop.
     for epoch in range(EPOCHS[task]):
         total_loss = 0.0
@@ -157,7 +157,7 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
             f"val loss {val_loss / len(val_dataset):.4f}, "
             f"val accuracy {val_correct / len(val_dataset):.2%}"
         )
-        # scheduler.step()
+        scheduler.step()
 
     return model
 
