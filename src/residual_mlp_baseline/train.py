@@ -81,6 +81,9 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
 
                 flip_mask = torch.rand(len(images), device=images.device) < 0.5
                 images[flip_mask] = images[flip_mask].flip(dims=[3])
+                
+                X_batch = images
+
             elif task == "mnist":
                 images = X_batch.reshape(-1, 1, 28, 28)
 
@@ -98,6 +101,29 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
                         )
                     )
                 ])
+
+                X_batch = images
+                
+            elif task == "imagenet32":
+                images = X_batch.reshape(-1, 3, 32, 32)
+
+                # Reflection padding adds 4 pixels around each image
+                images = F.pad(images, (4, 4, 4, 4), mode="reflect")
+
+                # Randomly crop each image back to 32x32
+                images = torch.stack([
+                    images[i, :, top:top + 32, left:left + 32]
+                    for i, (top, left) in enumerate(
+                        zip(
+                            torch.randint(0, 9, (len(images),)).tolist(),
+                            torch.randint(0, 9, (len(images),)).tolist()
+                        )
+                    )
+                ])
+
+                # Random horizontal flip with 50% probability
+                flip_mask = torch.rand(len(images), device=images.device) < 0.5
+                images[flip_mask] = images[flip_mask].flip(dims=[3])
   
                 X_batch = images
 

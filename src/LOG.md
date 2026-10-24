@@ -137,3 +137,10 @@ ImageNet 32x32: 6.77% test accuracy
 **Why:** We want to determine whether SwiGLU improves performance under the same training conditions.
 **Expected:** Higher validation and test accuracy than the current GELU model, potentially exceeding our previous best of 10%.
 **Result:** Test accuracy improved from 9.84% to 10.07%. Best validation accuracy increased from 10.91% to 11.21% at epoch 8, while minimum validation loss decreased from 5.1308 to 5.1082 at epoch 6. Training loss decreased to 4.2555, but validation loss increased to 5.2176 by epoch 10, indicating greater overfitting. SwiGLU improved accuracy slightly but increased training time.
+
+### Change 20 — ImageNet32 — 2026-10-24
+
+**Change:** Added data augmentation to ImageNet32 training using random cropping with 4-pixel reflection padding and horizontal flipping with a 50% probability.
+**Why:** The previous SwiGLU experiment showed signs of overfitting, with validation loss increasing after epoch 6. Data augmentation introduces variations in image positioning and orientation, potentially improving generalization.
+**Expected:** Improved validation and test accuracy compared with the previous SwiGLU result of 10.07%, along with reduced overfitting.
+**Result:** Pending.
