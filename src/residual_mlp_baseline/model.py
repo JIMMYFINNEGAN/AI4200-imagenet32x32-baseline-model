@@ -33,7 +33,7 @@ class Block(nn.Module):
         h = value * gate
         h = self.dropout(h)
         h = self.fc2(h)
-        
+
         return x + h                          # skip connection: add the input back
 
 
