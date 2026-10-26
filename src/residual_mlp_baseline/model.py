@@ -49,11 +49,24 @@ class ResidualMLP(nn.Module):
     differs from its input size (width), so the two cannot be added.
     """
 
-    def __init__(self, in_features, num_classes, width=256, hidden=512, depth=30):
+    def __init__(self, in_features, num_classes, width=128, hidden=512, depth=30):
         super().__init__()
 
-        # Project the flattened image down to the backbone width.
-        self.input_layer = nn.Linear(in_features, width)
+        self.use_patches = (in_features == 3 * 32 * 32)
+
+        if self.use_patches:
+            self.patch_size = 8
+            self.num_patches = 16
+
+            self.patch_embed = nn.Linear(192, width)
+
+            self.patch_norm = nn.LayerNorm(width)
+            self.spatial_mix = nn.Linear(16,16)
+
+            self.patch_output = nn.Linear(16 * width, width)
+
+        else:
+            self.input_layer = nn.Linear(in_features, width)
 
         # The residual backbone: `depth` identical blocks.
         self.blocks = nn.ModuleList([Block(width, hidden) for _ in range(depth)])
@@ -75,8 +88,24 @@ class ResidualMLP(nn.Module):
 
         nn.CrossEntropyLoss applies the softmax itself, so training uses logits.
         """
-        x = x.flatten(start_dim=1)            # (N, C, H, W) -> (N, C*H*W)
-        x = self.input_layer(x)
+        if self.use_patches:
+            x = x.reshape(-1, 3, 32, 32)
+
+            x = x.unfold(2, 8, 8).unfold(3, 8, 8)
+            x = x.permute(0, 2, 3, 1, 4, 5)
+            x = x.reshape(-1, 16, 192)
+
+            x = self.patch_embed(x)
+
+            h = self.patch_norm(x)
+            h = self.spatial_mix(h.transpose(1, 2)).transpose(1, 2)
+            x = x + h
+
+            x = self.patch_output(x.flatten(start_dim=1))
+        else:
+            x = x.flatten(start_dim=1)
+            x = self.input_layer(x)
+            
         for block in self.blocks:
             x = block(x)
         x = self.head_fc1(self.head_norm(x))
