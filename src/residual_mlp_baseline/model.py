@@ -24,7 +24,7 @@ class Block(nn.Module):
         self.fc1 = nn.Linear(width, hidden)   # expand:  width  -> hidden
         self.gate = nn.Linear(width, hidden)
         self.fc2 = nn.Linear(hidden, width)   # project: hidden -> width
-        self.dropout = nn.Dropout(p=0.1)
+        self.dropout = nn.Dropout(p=0.2)
 
     def forward(self, x):
         h = self.norm(x)
@@ -75,7 +75,7 @@ class ResidualMLP(nn.Module):
         self.head_norm = nn.LayerNorm(width)
         self.head_fc1 = nn.Linear(width, hidden)
         self.head_fc2 = nn.Linear(hidden, num_classes)
-        self.head_dropout = nn.Dropout(p=0.1)
+        self.head_dropout = nn.Dropout(p=0.2)
 
         # Xavier (Glorot) initialization for every linear layer, zero biases.
         for layer in self.modules():
@@ -105,7 +105,7 @@ class ResidualMLP(nn.Module):
         else:
             x = x.flatten(start_dim=1)
             x = self.input_layer(x)
-            
+
         for block in self.blocks:
             x = block(x)
         x = self.head_fc1(self.head_norm(x))
