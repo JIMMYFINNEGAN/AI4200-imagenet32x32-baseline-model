@@ -113,3 +113,52 @@ def measure_updates(model, snapshots):
         update_ratios.append(ratio)
 
     return update_ratios
+
+
+def collect_diagnostics(model, X_batch, y_batch, optimizer):
+    """
+    Measure training dynamics on a fixed batch without
+    permanently changing the model or optimizer.
+    """
+    import copy
+
+    # Save the original training/evaluation state.
+    was_training = model.training
+
+    # 1. Activation measurements in evaluation mode.
+    activations = measure_activations(model, X_batch)
+
+    # 2. Save model and optimizer states before diagnostics.
+    model_state = copy.deepcopy(model.state_dict())
+    optimizer_state = copy.deepcopy(optimizer.state_dict())
+
+    try:
+        # Evaluation mode makes dropout deterministic.
+        model.eval()
+        optimizer.zero_grad(set_to_none=True)
+
+        # 3. Compute gradients using the fixed batch.
+        logits = model(X_batch)
+        loss = torch.nn.functional.cross_entropy(logits, y_batch)
+        loss.backward()
+
+        gradients = measure_gradients(model)
+
+        # 4. Measure the optimizer's proposed update.
+        before = snapshot_weights(model)
+        optimizer.step()
+        updates = measure_updates(model, before)
+
+    finally:
+        # 5. Restore weights and optimizer state.
+        model.load_state_dict(model_state)
+        optimizer.load_state_dict(optimizer_state)
+        optimizer.zero_grad(set_to_none=True)
+        model.train(was_training)
+
+    return {
+        "activation_variance": activations["activation_variance"],
+        "branch_to_stream": activations["branch_to_stream"],
+        "gradient_rms": gradients,
+        "update_to_weight": updates,
+    }
