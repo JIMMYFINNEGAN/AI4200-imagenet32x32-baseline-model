@@ -15,14 +15,15 @@ EPOCHS = {"mnist": 30, "cifar10": 50, "imagenet32": 20}
 
 
 def prepare(X):
-    """Convert uint8 images (0-255) to floats in approximately [-1, 1]."""
+    """Normalize image pixels to [-1, 1]."""
     return (torch.as_tensor(X).float() / 255.0 - 0.5) / 0.5
 
 
 def train(task, X_train, y_train, seed=0, device="cuda"):
-    """Build and train a new model from scratch, returning the trained model."""
+    """Train and return a new model."""
     torch.manual_seed(seed)
 
+    # Enable optional ImageNet32 diagnostics.
     run_analysis = (
         task == "imagenet32"
         and os.environ.get("RUN_ANALYSIS") == "1"
@@ -33,6 +34,7 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
 
     model = ResidualMLP(**TASKS[task]).to(device)
 
+    # Create training and validation datasets.
     dataset = TensorDataset(
         prepare(X_train),
         torch.as_tensor(y_train).long()
@@ -59,12 +61,14 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
         shuffle=False
     )
 
+    # Set up fixed data for diagnostics.
     if run_analysis:
         fixed_X, fixed_y = next(iter(val_loader))
         fixed_X = fixed_X.to(device)
         fixed_y = fixed_y.to(device)
         diagnostic_history = {}
 
+    # Set up loss, optimizer, and learning rate schedule.
     loss_fn = nn.CrossEntropyLoss()
 
     optimizer = torch.optim.AdamW(
@@ -85,6 +89,7 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
         )
         print("Collected initialization diagnostics", flush=True)
 
+    # Train for the specified number of epochs.
     for epoch in range(EPOCHS[task]):
         total_loss = 0.0
         model.train()
@@ -93,13 +98,13 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
             X_batch = X_batch.to(device)
             y_batch = y_batch.to(device)
 
+            # Apply task-specific data augmentation.
             if task == "cifar10":
                 images = X_batch.reshape(-1, 3, 32, 32)
 
-                # Add 4 pixels of padding.
+                # Pad and randomly crop images.
                 images = F.pad(images, (4, 4, 4, 4))
 
-                # Random 32x32 crop.
                 images = torch.stack([
                     images[i, :, top:top + 32, left:left + 32]
                     for i, (top, left) in enumerate(
@@ -125,12 +130,11 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
             elif task == "mnist":
                 images = X_batch.reshape(-1, 1, 28, 28)
 
-                # Padding value -1 represents black after normalization.
+                # Pad and randomly crop images.
                 images = F.pad(
                     images, (2, 2, 2, 2), value=-1.0
                 )
 
-                # Random 28x28 crop.
                 images = torch.stack([
                     images[i, :, top:top + 28, left:left + 28]
                     for i, (top, left) in enumerate(
@@ -150,12 +154,11 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
             elif task == "imagenet32":
                 images = X_batch.reshape(-1, 3, 32, 32)
 
-                # Reflection padding.
+                # Reflection padding and random cropping.
                 images = F.pad(
                     images, (4, 4, 4, 4), mode="reflect"
                 )
 
-                # Random 32x32 crop.
                 images = torch.stack([
                     images[i, :, top:top + 32, left:left + 32]
                     for i, (top, left) in enumerate(
@@ -178,6 +181,7 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
 
                 X_batch = images
 
+            # Forward pass and weight update.
             logits = model(X_batch)
             loss = loss_fn(logits, y_batch)
 
@@ -187,7 +191,7 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
 
             total_loss += loss.item() * len(X_batch)
 
-        # Validation loop.
+        # Evaluate on the validation set.
         model.eval()
         val_loss = 0.0
         val_correct = 0
@@ -205,6 +209,7 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
                     (logits.argmax(dim=1) == y_batch).sum().item()
                 )
 
+        # Print training and validation results.
         print(
             f"epoch {epoch + 1}: "
             f"train loss {total_loss / len(train_dataset):.4f}, "
@@ -215,7 +220,7 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
 
         scheduler.step()
 
-        # Record training dynamics at selected epochs.
+        # Collect diagnostics at selected epochs.
         if run_analysis and (epoch + 1) in (2, 10, 20):
             stage = f"epoch_{epoch + 1}"
 
@@ -225,18 +230,18 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
 
             print(f"Collected diagnostics: {stage}", flush=True)
 
-            # Save intermediate results in case the HPC job times out.
+            # Save progress in case training stops.
             with open("imagenet32_diagnostics.json", "w") as f:
                 json.dump(diagnostic_history, f, indent=2)
 
     if run_analysis:
-        # Save final training-dynamics measurements.
+        # Save final diagnostic results.
         with open("imagenet32_diagnostics.json", "w") as f:
             json.dump(diagnostic_history, f, indent=2)
 
         print("Saved imagenet32_diagnostics.json", flush=True)
 
-        # Run the 30-block ablation study.
+        # Measure the effect of removing each residual block.
         print(
             "Starting 30-block validation ablation; "
             "this can take additional time.",
@@ -256,14 +261,16 @@ def train(task, X_train, y_train, seed=0, device="cuda"):
 
 
 def predict(model, X):
-    """Return class probabilities for X, one row per example, on CPU."""
+    """Return class probabilities for each input image."""
     device = next(model.parameters()).device
     X = prepare(X)
 
+    # Predict in batches to limit memory usage.
     chunks = [
         model.predict(X[i:i + 1024].to(device)).cpu()
         for i in range(0, len(X), 1024)
     ]
 
     return torch.cat(chunks)
+
 

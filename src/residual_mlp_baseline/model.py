@@ -1,32 +1,29 @@
+
 import torch
 import torch.nn as nn
 
 
-# Each task differs only in its input size and its number of classes.
-# The same model class is used for all three.
+# Input size and number of classes for each dataset.
 TASKS = {
-    "mnist":      {"in_features": 28 * 28,     "num_classes": 10},    # 28x28 grayscale
-    "cifar10":    {"in_features": 3 * 32 * 32, "num_classes": 10},    # 32x32 color
-    "imagenet32": {"in_features": 3 * 32 * 32, "num_classes": 1000},  # 32x32 color
+    "mnist":      {"in_features": 28 * 28,     "num_classes": 10},
+    "cifar10":    {"in_features": 3 * 32 * 32, "num_classes": 10},
+    "imagenet32": {"in_features": 3 * 32 * 32, "num_classes": 1000},
 }
 
 
 class Block(nn.Module):
-    """One residual block:  x + Linear(tanh(Linear(LayerNorm(x))))
-
-    The block expands to `hidden` features, applies tanh, and projects back to
-    `width` features so its output can be added to its input (the skip connection).
-    """
+    """Residual block with normalization and gated activation."""
 
     def __init__(self, width, hidden):
         super().__init__()
-        self.norm = nn.LayerNorm(width)       # pre-norm: normalize before the layers
-        self.fc1 = nn.Linear(width, hidden)   # expand:  width  -> hidden
+        self.norm = nn.LayerNorm(width)
+        self.fc1 = nn.Linear(width, hidden)
         self.gate = nn.Linear(width, hidden)
-        self.fc2 = nn.Linear(hidden, width)   # project: hidden -> width
+        self.fc2 = nn.Linear(hidden, width)
         self.dropout = nn.Dropout(p=0.2)
 
     def forward(self, x):
+        # Normalize and apply the gated activation.
         h = self.norm(x)
         value = self.fc1(h)
         gate = nn.functional.silu(self.gate(h))
@@ -34,24 +31,17 @@ class Block(nn.Module):
         h = self.dropout(h)
         h = self.fc2(h)
 
-        return x + h                          # skip connection: add the input back
+        # Add the original input through the skip connection.
+        return x + h
 
 
 class ResidualMLP(nn.Module):
-    """Baseline residual MLP.
-
-    input -> Linear(in_features -> width)            project into the backbone
-          -> depth x Block                           residual backbone, stays `width` wide
-          -> LayerNorm -> Linear -> tanh -> Linear   head: a block without the skip
-          -> logits (num_classes)
-
-    The head has no skip connection because its output size (num_classes)
-    differs from its input size (width), so the two cannot be added.
-    """
+    """Residual MLP with optional image patches and spatial mixing."""
 
     def __init__(self, in_features, num_classes, width=128, hidden=512, depth=30):
         super().__init__()
 
+        # Use patches for CIFAR-10 and ImageNet32.
         self.use_patches = (in_features == 3 * 32 * 32)
 
         if self.use_patches:
@@ -66,35 +56,36 @@ class ResidualMLP(nn.Module):
             self.patch_output = nn.Linear(16 * width, width)
 
         else:
+            # MNIST uses flattened image inputs.
             self.input_layer = nn.Linear(in_features, width)
 
-        # The residual backbone: `depth` identical blocks.
+        # Create the residual blocks.
         self.blocks = nn.ModuleList([Block(width, hidden) for _ in range(depth)])
 
-        # The head: same layers as a block, but the last layer outputs class scores.
+        # Classification head.
         self.head_norm = nn.LayerNorm(width)
         self.head_fc1 = nn.Linear(width, hidden)
         self.head_fc2 = nn.Linear(hidden, num_classes)
         self.head_dropout = nn.Dropout(p=0.2)
 
-        # Xavier (Glorot) initialization for every linear layer, zero biases.
+        # Initialize weights and biases.
         for layer in self.modules():
             if isinstance(layer, nn.Linear):
                 nn.init.xavier_normal_(layer.weight)
                 nn.init.zeros_(layer.bias)
 
     def forward(self, x):
-        """Training forward pass. Returns raw logits (no softmax).
+        """Return raw class scores (logits)."""
 
-        nn.CrossEntropyLoss applies the softmax itself, so training uses logits.
-        """
         if self.use_patches:
+            # Split images into 16 patches of size 8x8.
             x = x.reshape(-1, 3, 32, 32)
 
             x = x.unfold(2, 8, 8).unfold(3, 8, 8)
             x = x.permute(0, 2, 3, 1, 4, 5)
             x = x.reshape(-1, 16, 192)
 
+            # Embed patches and mix spatial information.
             x = self.patch_embed(x)
 
             h = self.patch_norm(x)
@@ -103,11 +94,15 @@ class ResidualMLP(nn.Module):
 
             x = self.patch_output(x.flatten(start_dim=1))
         else:
+            # Flatten MNIST images and project to model width.
             x = x.flatten(start_dim=1)
             x = self.input_layer(x)
 
+        # Pass through the residual backbone.
         for block in self.blocks:
             x = block(x)
+
+        # Produce final class scores.
         x = self.head_fc1(self.head_norm(x))
         x = nn.functional.gelu(x)
         x = self.head_dropout(x)
@@ -116,7 +111,7 @@ class ResidualMLP(nn.Module):
         return x
 
     def predict(self, x):
-        """Inference pass, never used during training. Returns class probabilities."""
-        self.eval()                           # switch layers to inference behavior
-        with torch.no_grad():                 # no gradients needed at inference
+        """Return class probabilities for inference."""
+        self.eval()
+        with torch.no_grad():
             return torch.softmax(self.forward(x), dim=1)
